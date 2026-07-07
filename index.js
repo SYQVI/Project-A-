@@ -2,12 +2,11 @@ require("dotenv").config();
 
 const fs = require("fs");
 const path = require("path");
-const mongoose = require("mongoose");
 
 const {
     Client,
-    GatewayIntentBits,
     Collection,
+    GatewayIntentBits,
     Partials
 } = require("discord.js");
 
@@ -18,26 +17,47 @@ const client = new Client({
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.DirectMessages
     ],
-    partials: [Partials.Channel]
+    partials: [
+        Partials.Channel
+    ]
 });
 
 client.commands = new Collection();
+client.buttons = new Collection();
+client.modals = new Collection();
 
-mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("✅ MongoDB Connected"))
-.catch(console.error);
+const folders = ["commands", "buttons", "modals", "events"];
 
-const commandFiles = fs.readdirSync("./commands").filter(f => f.endsWith(".js"));
+for (const folder of folders) {
 
-for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
-    client.commands.set(command.data.name, command);
-}
+    const folderPath = path.join(__dirname, folder);
 
-const eventFiles = fs.readdirSync("./events").filter(f => f.endsWith(".js"));
+    if (!fs.existsSync(folderPath)) continue;
 
-for (const file of eventFiles) {
-    require(`./events/${file}`)(client);
+    const files = fs.readdirSync(folderPath).filter(file => file.endsWith(".js"));
+
+    for (const file of files) {
+
+        const filePath = path.join(folderPath, file);
+
+        const module = require(filePath);
+
+        if (folder === "commands") {
+            client.commands.set(module.data.name, module);
+        }
+
+        if (folder === "buttons") {
+            client.buttons.set(module.customId, module);
+        }
+
+        if (folder === "modals") {
+            client.modals.set(module.customId, module);
+        }
+
+        if (folder === "events") {
+            client.on(module.name, (...args) => module.execute(...args, client));
+        }
+    }
 }
 
 client.login(process.env.TOKEN);

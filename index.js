@@ -1,3 +1,5 @@
+console.log("NEW INDEX FILE LOADED");
+
 const connectDatabase = require("./database/connect");
 
 const fs = require("fs");

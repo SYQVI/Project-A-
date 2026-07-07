@@ -1,4 +1,4 @@
-require("dotenv").config();
+const connectDatabase = require("./database/connect");
 
 const fs = require("fs");
 const path = require("path");
@@ -59,5 +59,7 @@ for (const folder of folders) {
         }
     }
 }
+
+connectDatabase();
 
 client.login(process.env.TOKEN);

@@ -1,7 +1,6 @@
-console.log("NEW INDEX FILE LOADED");
+require("dotenv").config();
 
 const connectDatabase = require("./database/connect");
-
 const fs = require("fs");
 const path = require("path");
 
